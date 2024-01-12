@@ -3,12 +3,13 @@ DOCKERHUB_USER=paulklemm
 SERVER=pklemm@blade27.sf.mpg.de
 SINGULARITY_PATH=/beegfs/scratch/bruening_scratch/pklemm/singularity/singularity-images
 SINGULARITY_LATEST_PATH=$(SINGULARITY_PATH)/latest
+PLATFORM=--platform linux/x86_64
 
 .PHONY: all
 all: build singularity copy create-link clean
 
 build:
-	docker build -t my_conda .
+	docker build $(PLATFORM) -t my_conda .
 	docker tag my_conda $(DOCKERHUB_USER)/my_conda:$(VERSION)
 	docker push $(DOCKERHUB_USER)/my_conda:$(VERSION)
 
@@ -19,7 +20,7 @@ copy:
 	scp ${PWD}/my_conda_$(VERSION).simg $(SERVER):$(SINGULARITY_PATH)
 
 create-link:
-	ssh $(SERVER) "ln -s $(SINGULARITY_PATH)/my_conda_$(VERSION).simg $(SINGULARITY_LATEST_PATH)/my_conda.simg"
+	ssh $(SERVER) "rm $(SINGULARITY_LATEST_PATH)/my_conda.simg; ln -s $(SINGULARITY_PATH)/my_conda_$(VERSION).simg $(SINGULARITY_LATEST_PATH)/my_conda.simg"
 
 clean:
 	rm -f my_conda_$(VERSION).simg
